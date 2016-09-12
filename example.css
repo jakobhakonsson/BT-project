@@ -1,0 +1,14 @@
+/*a tag selector*/
+span{
+  color: blue;
+}
+
+/*An ID selector*/
+#red{
+  color:red;
+}
+
+/*A class selector*/
+.green{
+  color:green;
+}

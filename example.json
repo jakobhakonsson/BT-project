@@ -1,0 +1,30 @@
+{
+    "0C:B3:19:01:9D:EA" : {
+      "MACAddress" : "0C:B3:19:01:9D:EA",
+      "friendlyName" : "Klara",
+      "lastSeen" : 1470750283922,
+      "timesDiscovered" : 875
+    },
+    "3C:E0:72:BE:00:5D" : {
+      "MACAddress" : "3C:E0:72:BE:00:5D",
+      "friendlyName" : "Lars's iPad",
+      "lastSeen" : 1470512577654,
+      "timesDiscovered" : 65
+    },
+    "B8:27:EB:03:D7:CF" : {
+      "MACAddress" : "B8:27:EB:03:D7:CF",
+      "friendlyName" : "floor-5-niagara",
+      "lastSeen" : 1470750008190,
+      "timesDiscovered" : 147
+    },
+    "E0:B9:BA:C4:D5:AF" : {
+      "MACAddress" : "E0:B9:BA:C4:D5:AF",
+      "friendlyName" : "Grönfläckig padda",
+      "lastSeen" : 1470582117813,
+      "timesDiscovered" : 25
+    },
+  },
+  "MACAddress" : "BC:44:86:7D:2B:55",
+  "friendlyName" : "Mats",
+  "lastActive" : 1470750295176
+}
