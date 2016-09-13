@@ -1,11 +1,13 @@
 "use strict"
+var infectedNearby = 0;
+//var Inventory : infectedPerson[] = new infectedPerson[10];
+var infectedPeopleNearby = new Array(15);
+
 if (document.readyState != 'loading'){
   onDocumentReady();
 } else {
   document.addEventListener('DOMContentLoaded', onDocumentReady);
 }
-
-var infectedNearby = 0;
 
 function onDocumentReady() {
   console.log("Ready!");
@@ -51,41 +53,6 @@ function readLastActiveFromLarsPhoneAndListenForUpdates(){
   });
 }
 
-//A function for reading all devices that lars phone has seen once and rpint their names
-function readAllBluetoothDevicesLarsPhoneHasSeen(){
-  var ref = firebase.database().ref('/84:8E:DF:AB:18:4D/BTFound');
-  ref.once('value').then(function(snapshot) {
-    var key = snapshot.key; //Gets the key (variablename") "lastActive" in the name value pair {"lastActive" : 1470750295176}
-    console.log(key);
-    var time = snapshot.val(); //Gets the value for the variable "lastActive" in the name value pair {"lastActive" : 1470750295176}
-    console.dir(time);
-    //Ok lets iterate through them
-      snapshot.forEach(function(childSnapshot) {
-        var key = childSnapshot.key;
-          var friendlyName = childSnapshot.child("friendlyName").val();
-          var MACAddress = childSnapshot.child("MACAddress").val();
-          console.log("key: "+friendlyName,"value: "+MACAddress);
-      });
-  });
-}
-
-//A function for reading all devices that lars phone has seen once and rpint their names
-function readBluetoothDevicesLarsPhoneHasSeenMoreThanTenTimesAndSortThemByTimesDiscovered(){
-  var ref = firebase.database().ref('/84:8E:DF:AB:18:4D/BTFound');
-  ref.orderByChild('timesDiscovered').startAt(10,'timesDiscovered').once('value').then(function(snapshot) {
-    //Ok lets iterate through the BTFound
-      snapshot.forEach(function(childSnapshot) {
-        var key = childSnapshot.key;
-          var friendlyName = childSnapshot.child("friendlyName").val();
-          var lastSeen = childSnapshot.child("lastSeen").val();
-          var timesDiscovered= childSnapshot.child("timesDiscovered").val();
-          if (friendlyName!=null){
-              console.log("Device: "+friendlyName," has been seen "+timesDiscovered+" times and last time it was seen was "+ timeConverter(lastSeen));
-          }
-      });
-  });
-}
-
   //In this function we are interested in knowing when Lars phone meets new and old BT-devices
 function listenForChangesFromLarsBluetoothDevices(){
   var ref = firebase.database().ref('/84:8E:DF:AB:18:4D/BTFound');
@@ -118,11 +85,12 @@ function closeToBTDevice(btId,timeSinceLastActivity){
       var  friendlyNameDiscoveredDevice = (snapshot.child("friendlyName").val());
       var  MACAddressDiscoveredDevice = (snapshot.child("MACAddress").val());
       var timeDiff = Math.round(nowInSec - lastSeenInSec);
+      infection(MACAddressDiscoveredDevice, timeDiff);
       //console.log("diff: " + timeDiff);
       //if(friendlyName == "Galaxy S6 edge") {
       //  console.log("Marten is best")
       //}
-      console.log("There are "+infectedNearby+" infected people nearby.")
+      console.log("There are "+infectedPeopleNearby.length+" infected people nearby.")
       if(MACAddressDiscoveredDevice=="E0:DB:10:13:C5:16") {
         console.log("Marten is here!!!")
       }
@@ -155,10 +123,10 @@ function writeUserData(userId, name, email, imageUrl) {
     profile_picture : imageUrl
   });
 }
-
+/*
 class infectedPerson {
-  var macAddress;
-  var timeOfEncounter;
+  var macAddress : String;
+  var timeOfEncounter : String;
   constructor(var macAddress, var timeOfEncounter) {
     this.macAddress=macAddress;
     this.timeOfEncounter=timeOfEncounter;
@@ -170,13 +138,28 @@ class infectedPerson {
     return macAddress;
   }
 }
+*/
 
-function checkIfEncountered(macAddress) {
-  for(int i = 0; i < infectedPeopleNearby.length+1; i++) {
-    if(infectedPeopleNearby[i].returnMacAddress==macAddress){
-      infectedPeopleNearby[i].resetTimerIfEncounteredAgain(time);
-    } else if(i==infectedPeopleNearby.length+2) {
-      infectedPeopleNearby[i]=new infectedPerson(macAddress, time);
+function infection(){
+  checkIfEncountered("E0:DB:10:13:C5:16", "12:00")
+}
+
+function infectedPerson(macAddress) {
+  this.macAddress = macAddress;
+  this.timeOfEncounter = timeOfEncounter;
+  this.returnMacAddress = function() {
+    return this.macAddress;
+  }
+  window.setTimeout(clearInfectedPerson(), 30000)
+}
+
+function checkIfEncountered(macAddress, time) {
+  for (var i = 0; i < infectedPeopleNearby.length; i++) {
+    if(infectedPeopleNearby[i]==macAddress){
+      infectedPerson.timeOfEncounter = time;
+    } else if(i==infectedPeopleNearby.length) {
+      var addInfected = infectedPeopleNearby.push(infectedPerson(MACAddressDiscoveredDevice));
     }
+  //  if(infectedPerson.timeOfEncounter > )
   }
 }
