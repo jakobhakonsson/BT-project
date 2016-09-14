@@ -1,7 +1,15 @@
 "use strict"
+var deviceMAC = '/84:8E:DF:AB:18:4D/lastActive';
 var infectedNearby = 0;
 //var Inventory : infectedPerson[] = new infectedPerson[10];
-var infectedPeopleNearby = new Array(15);
+var infectedPeopleNearby = new Array(0);
+
+var timer = setInterval(listenForChangesFromLarsBluetoothDevices, 15000);
+
+function reduceInfectedPeople() {
+  if (infectedNearby>0) infectedNearby--;
+  console.log("Reduced infected. There are "+infectedNearby+" infected people nearby.")
+}
 
 if (document.readyState != 'loading'){
   onDocumentReady();
@@ -20,18 +28,57 @@ function onDocumentReady() {
   //Read one value
   //readLastActiveFromLarsPhoneOnce();
   //readLastActiveFromLarsPhoneAndListenForUpdates();
-  //readAllBluetoothDevicesLarsPhoneHasSeen();
-  //readBluetoothDevicesLarsPhoneHasSeenMoreThanTenTimesAndSortThemByTimesDiscovered();
-  //listenForChangesFromLarsBluetoothDevices();
+  listenForChangesFromLarsBluetoothDevices();
   //And perhaps something more usefull...
-  closeToBTDevice("84:8E:DF:AB:18:4D",60);
+  closeToBTDevice("84:8E:DF:AB:18:4D",10);
 };
+
+//A function for reading all devices that lars phone has seen once and rpint their names
+function readAllBluetoothDevicesLarsPhoneHasSeen(){
+  var ref = firebase.database().ref('/0C:B3:19:01:9D:EA/BTFound');
+  ref.once('value').then(function(snapshot) {
+    var key = snapshot.key; //Gets the key (variablename") "lastActive" in the name value pair {"lastActive" : 1470750295176}
+    //console.log(key);
+    var value = snapshot.val(); //Gets the value for the variable "lastActive" in the name value pair {"lastActive" : 1470750295176}
+    //console.dir(value);
+    //Ok lets iterate through them
+      snapshot.forEach(function(childSnapshot) {
+        //console.log(childSnapshot.val());
+        //Get the nessesarry values
+          var friendlyNameValue = childSnapshot.child("friendlyName").val();
+          var MACAddressValue = childSnapshot.child("MACAddress").val();
+          //console.log("key: "+friendlyName,"value: "+MACAddress);
+          //Push em to the array as a JSON object add more parameter if needed
+          myBT.push({
+            mac:MACAddressValue,
+            friendlyName:friendlyNameValue
+          });
+      });
+      printEm();
+  });
+}
+
+function printEm(){
+  //A priny thing
+  console.log(myBT.length);
+  //Get a element from the HTML page...
+  var info = document.getElementById('info');
+  info.innerHTML = ""; //Clear it
+  for(var i = 0; i<myBT.length;i++){
+    //Add a
+    var name = myBT[i].friendlyName;
+    if (name!=null){
+      info.insertAdjacentHTML('beforeend', '<p>'+myBT[i].friendlyName+'</p>');
+    }
+    console.log("got"+myBT[i].friendlyName);
+  }
+}
 
 ///Reading a single data value pair
 //A function that read the lastActive from my phone once
 function readLastActiveFromLarsPhoneOnce(){
   //Get a reference to the correct place in the database
-  var ref = firebase.database().ref('/84:8E:DF:AB:18:4D/lastActive');
+  var ref = firebase.database().ref(deviceMAC);
   //Retreive info from that reference point read it once
   ref.once('value').then(function(snapshot) {
     var key = snapshot.key; //Gets the key (variablename") "lastActive" in the name value pair {"lastActive" : 1470750295176}
@@ -44,8 +91,8 @@ function readLastActiveFromLarsPhoneOnce(){
 
 //A function that hooks up a callback (Listaner) and is called everytime the variable changes
 function readLastActiveFromLarsPhoneAndListenForUpdates(){
-  var ref = firebase.database().ref('/84:8E:DF:AB:18:4D/lastActive');
-  firebase.database().ref('/84:8E:DF:AB:18:4D/lastActive').on('value',function(snapshot) {
+  var ref = firebase.database().ref(deviceMAC);
+  firebase.database().ref(deviceMAC).on('value',function(snapshot) {
     var key = snapshot.key;
     console.log(key);
     var time = snapshot.val();
@@ -55,13 +102,17 @@ function readLastActiveFromLarsPhoneAndListenForUpdates(){
 
   //In this function we are interested in knowing when Lars phone meets new and old BT-devices
 function listenForChangesFromLarsBluetoothDevices(){
+infectedNearby = 0;
   var ref = firebase.database().ref('/84:8E:DF:AB:18:4D/BTFound');
   ref.on('child_changed', function(snapshot) {
     //So when the time is updated this i called
+
     var  friendlyName = snapshot.child("friendlyName").val();
     var  MACAddress = snapshot.child("MACAddress").val();
     var lastSeen = timeConverter(snapshot.child("lastSeen").val());
     console.log("The friendlyName: "+friendlyName + " with MACAddress "+ MACAddress +" was active close to 84:8E:DF:AB:18:4D " + lastSeen+" seconds ago.");
+    infectedNearby++;
+    console.log("There are "+infectedNearby+" infected people nearby.");
   });
 }
 
@@ -69,6 +120,7 @@ function listenForChangesFromLarsBluetoothDevices(){
 //usefull perhaps
 //This method checks which devices that are close to a BT-device and updates result
 function closeToBTDevice(btId,timeSinceLastActivity){
+  infectedNearby = 0;
   var ref = firebase.database().ref();
   //Her we will have all changes!!!
   ref.on('child_changed', function(snapshot) {
@@ -77,7 +129,7 @@ function closeToBTDevice(btId,timeSinceLastActivity){
     if(changed==btId){
       //Ok check how long time it is since it changed
       //Time now
-      infectedNearby++;
+
       var nowInSec = Math.round(Date.now()/1000);
       //Time since the device was seen
       var  lastSeenInSec= (snapshot.child("BTFound").child(btId).child("lastSeen").val())/1000;
@@ -85,16 +137,17 @@ function closeToBTDevice(btId,timeSinceLastActivity){
       var  friendlyNameDiscoveredDevice = (snapshot.child("friendlyName").val());
       var  MACAddressDiscoveredDevice = (snapshot.child("MACAddress").val());
       var timeDiff = Math.round(nowInSec - lastSeenInSec);
-      infection(MACAddressDiscoveredDevice, timeDiff);
+      //infection(MACAddressDiscoveredDevice, timeDiff);
       //console.log("diff: " + timeDiff);
       //if(friendlyName == "Galaxy S6 edge") {
       //  console.log("Marten is best")
       //}
-      console.log("There are "+infectedPeopleNearby.length+" infected people nearby.")
-      if(MACAddressDiscoveredDevice=="E0:DB:10:13:C5:16") {
-        console.log("Marten is here!!!")
-      }
+      //if(MACAddressDiscoveredDevice=="E0:DB:10:13:C5:16") {
+      //  console.log("Marten is here!!!")
+      //}
       if (timeDiff<timeSinceLastActivity){
+        infectedNearby++;
+        console.log("There are "+infectedNearby+" infected people nearby.");
         console.log("The device "+friendlyNameDiscoveredDevice+" with MACAddress "+MACAddressDiscoveredDevice+" was seen close to "+btId+" with friendlyname "+friendlyName+" "+timeDiff+" seconds ago");
       }
     }
@@ -140,8 +193,8 @@ class infectedPerson {
 }
 */
 
-function infection(){
-  checkIfEncountered("E0:DB:10:13:C5:16", "12:00")
+function infection(macAddress){
+  checkIfEncountered(macAddress)
 }
 
 function infectedPerson(macAddress) {
@@ -150,15 +203,21 @@ function infectedPerson(macAddress) {
   this.returnMacAddress = function() {
     return this.macAddress;
   }
-  window.setTimeout(clearInfectedPerson(), 30000)
 }
 
-function checkIfEncountered(macAddress, time) {
-  for (var i = 0; i < infectedPeopleNearby.length; i++) {
-    if(infectedPeopleNearby[i]==macAddress){
-      infectedPerson.timeOfEncounter = time;
-    } else if(i==infectedPeopleNearby.length) {
-      var addInfected = infectedPeopleNearby.push(infectedPerson(MACAddressDiscoveredDevice));
+function checkIfEncountered(macAddress) {
+  for (var i = 0; i < infectedPeopleNearby.length+1; i++) {
+    console.log(infectedPeopleNearby.length)
+    var currentPerson = infectedPeopleNearby[i];
+    console.log(currentPerson.MACAddress)
+    if(currentPerson["MACAddress"]==macAddress){
+      console.log("här")
+      //infectedPerson.timeOfEncounter = time;
+    } else if(infectedPeopleNearby.length==i) {
+      console.log("där")
+      //var newPerson = new object(MACAddress: macAddress, timeOfEncounter: "12:00");
+      //infectedPeopleNearby.push(newPerson);
+      i++;
     }
   //  if(infectedPerson.timeOfEncounter > )
   }
