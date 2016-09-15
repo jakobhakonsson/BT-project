@@ -141,7 +141,7 @@ class infectedPerson {
 */
 
 function infection(){
-  checkIfEncountered("E0:DB:10:13:C5:16", "12:00")
+  checkIfEncountered("E0:DB:10:13:C5:16", "12:00");
 }
 
 function infectedPerson(macAddress) {
