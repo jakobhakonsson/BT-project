@@ -25,8 +25,6 @@ function timerAdjustment() {
   }
 }
 
-timerAdjustment();
-
 var coughs = ['assets/1.mp3', 'assets/2.wav', 'assets/3.wav'];
 
 timerAdjustment();
