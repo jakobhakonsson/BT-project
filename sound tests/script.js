@@ -10,6 +10,25 @@ var amountOfInfectedNearby = 0;
 var timerInterval = 0;
 var audio = new Audio('assets/1.mp3');
 
+
+function timerAdjustment() {
+  console.log("hej")
+  if (amountOfInfectedNearby == 0) {
+    clearTimeout(timer);
+    var updateTimer = setTimeout(timerAdjustment, 1000);
+    console.log("bajs")
+  } else {
+    timerInterval = Math.max(10000/amountOfInfectedNearby, 3000);
+    var timer = setTimeout(timerAdjustment, timerInterval);
+    clearTimeout(updateTimer);
+    playCough();
+  }
+}
+
+timerAdjustment();
+
+var coughs = ['assets/1.mp3', 'assets/2.wav', 'assets/3.wav'];
+
 function timerAdjustment() {
   console.log("hej")
   if (amountOfInfectedNearby == 0) {
@@ -36,18 +55,20 @@ function infect() {
   console.log("INFECTED")
 }
 
-// Annat försök för ljud
-function playSound() {
-  var sounds = [
-    "http://www.mysite.com/1.wav",
-    "http://www.mysite.com/2.wav",
-    "http://www.mysite.com/3.wav"
-  ];
+function infect() {
+  amountOfInfectedNearby++;
+  console.log("INFECTED")
 }
 
 function playCough() {
+  randomiseCough();
   console.log(amountOfInfectedNearby)
   console.log(timerInterval)
   audio.play();
-  //  $.("#element").html("<embed src=\"" + Math.floor(Math.random() * (coughs.length + 1)) + "\" autostart=\"true\" />");
+}
+
+function randomiseCough() {
+  console.log("wat")
+  audio = new Audio(coughs[(Math.floor(Math.random() * coughs.length) + 1)-1]);
+  console.log(audio)
 }
