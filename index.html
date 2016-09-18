@@ -11,6 +11,12 @@
   <h1>Spatiality experience through sound</h1>
   <p>The aim of this concept is to convey a sense of space through the usage of bluetooth and 3-dimensional sound</p>
 <script src="https://www.gstatic.com/firebasejs/3.2.1/firebase.js"></script>
+<form>
+  Please input device Mac Address<br>
+  <input type="deviceMacAddress" value="E0:DB:10:13:C5:16" id="macInput">
+</form>
+    <button onclick="playPause()">Submit and start</button>
+  </p>
 <script>
   // Initialize Firebase check firebase page if you are using another database
   var config = {
@@ -22,6 +28,6 @@
   firebase.initializeApp(config);
 </script>
 <!--get javascriptfile-->
-<script src="example.js"></script>
+<script src="techPlague.js"></script>
 </body>
 </html>
