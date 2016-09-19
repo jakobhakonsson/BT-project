@@ -1,4 +1,3 @@
-// This function tells you how many devices a selected device has seen within a set timeframe
 var deviceMacAddress = "E0:DB:10:13:C5:16";
 
 var coughs = ['coughs/1.mp3', 'coughs/2.wav', 'coughs/3.wav', 'coughs/4.wav', 'coughs/5.wav', 'coughs/6.wav', 'coughs/7.wav',
@@ -9,6 +8,7 @@ var coughs = ['coughs/1.mp3', 'coughs/2.wav', 'coughs/3.wav', 'coughs/4.wav', 'c
               'coughs/36.wav', 'coughs/37.wav', 'coughs/38.mp3'];
 
 var timerInterval = 0;
+var tolerance = 15;
 var amountOfInfectedNearby = 0;
 var pause = true;
 
@@ -17,50 +17,34 @@ function playPause() {
   deviceMacAddress = document.getElementById("macInput").value;
   console.log(deviceMacAddress)
   if (pause) console.log("PAUSED")
-  else console.log("STARTED")
+  else {
+    console.log("STARTED")
+    seenRecently(deviceMacAddress)
+  }
 }
 
 seenRecently(deviceMacAddress);
 
 function seenRecently(MACAddress){
-  var searchPath = "/" + MACAddress + "/BTFound"; // Creates the string of the BTfound for the specified MACaddress
+  var searchPath = "/" + MACAddress + "/BTFound";
   var ref = firebase.database().ref(searchPath);
-  //var maxSeen = 10;
 
-  // Update everytime a change in the search path appears
   firebase.database().ref(searchPath).on('value',function(snapshot) {
   	var key = snapshot.key;
-
-      // Variables needed to find out number of devices currently seeing you
-      var withinTimeFrame = 0;
-      var outsideTimeFrame = 0;
-      var lastSeen = 0;
-      var currentTime = 0;
-      var tolerance = 30;
-
-    // Get variables from each child within BTFound
+    amountOfInfectedNearby = 0;
     snapshot.forEach(function(childSnapshot) {
-      currentTime = Math.round(Date.now()/1000); // Find out the current time
-
+      var currentTime = Math.round(Date.now()/1000);
       var friendlyName = childSnapshot.child("friendlyName").val();
       var MACAddress = childSnapshot.child("MACAddress").val();
-      lastSeen = Math.round(childSnapshot.child("lastSeen").val()/1000);
+      var lastSeen = Math.round(childSnapshot.child("lastSeen").val()/1000);
 
-      // If a device was last seen within the set timeframe, add it to the counter and print the device details
       if (lastSeen >= currentTime - tolerance) {
-      	withinTimeFrame++;
-      	console.log("Device found!\t Device " + friendlyName + " (" + MACAddress + ") was seen " + (currentTime - lastSeen) + " seconds ago!");
-        console.log(withinTimeFrame)
+      	amountOfInfectedNearby++;
+        console.log("Device found")
       }
 
-      // If a device was not seen within the timeframe, add it to another counter.
-      if (lastSeen < currentTime - tolerance) {
-      	outsideTimeFrame++;
-      }
-
-      amountOfInfectedNearby = withinTimeFrame;
   });
-    if (withinTimeFrame == 0){
+    if (amountOfInfectedNearby == 0){
     	console.log("No devices nearby");
     }
 });
@@ -71,19 +55,19 @@ function timerAdjustment() {
     clearTimeout(timer);
     var updateTimer = setTimeout(timerAdjustment, 1000);
   } else {
-    timerInterval = Math.max(10000/(amountOfInfectedNearby/2), 2000);
+    timerInterval = Math.max(10000/amountOfInfectedNearby, 2000);
     var timer = setTimeout(timerAdjustment, timerInterval);
     clearTimeout(updateTimer);
     playCough();
   }
 }
 
-timerAdjustment();
-
 function playCough() {
   randomiseCough();
   console.log(amountOfInfectedNearby)
   console.log(timerInterval)
+  audio.volume = (Math.random() * (1 - 0.2) + 0.2);
+  console.log(audio.volume)
   audio.play();
 }
 
@@ -91,3 +75,5 @@ function randomiseCough() {
   audio = new Audio(coughs[(Math.floor(Math.random() * coughs.length) + 1)-1]);
   console.log(audio)
 }
+
+timerAdjustment();
